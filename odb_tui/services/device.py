@@ -1,7 +1,13 @@
+"""OBD-II device detection service."""
+
 import serial.tools.list_ports as list_ports
 
 
 def detect_obd_device() -> tuple[str | None, str | None, str | None]:
+    """Scan serial ports for a known OBD-II adapter.
+
+    Returns a tuple of (device_path, vid_hex, pid_hex) or (None, None, None).
+    """
     ports = list_ports.comports()
     for port in ports:
         vid = f"{port.vid:04x}" if port.vid else None

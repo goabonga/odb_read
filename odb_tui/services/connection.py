@@ -1,7 +1,10 @@
+"""OBD-II connection management service."""
+
 import obd
 
 
 class OBDConnectionService:
+    """Wrap python-obd to manage a single OBD-II connection."""
 
     def __init__(self) -> None:
         self.connection: obd.OBD | None = None

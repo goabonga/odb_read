@@ -1,8 +1,11 @@
+"""Application controller orchestrating OBD services."""
+
 from odb_tui.services.connection import OBDConnectionService
 from odb_tui.services.device import detect_obd_device
 
 
 class AppController:
+    """Coordinate device detection and connection lifecycle."""
 
     def __init__(self) -> None:
         self.conn = OBDConnectionService()
