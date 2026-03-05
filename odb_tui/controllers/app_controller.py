@@ -19,6 +19,7 @@ class AppController:
         self.supported_commands: SupportedCommands | None = None
 
     def connect(self) -> None:
+        """Detect device, connect, and discover supported commands."""
         self.status = "CONNECTING..."
         device, vid, pid = detect_obd_device()
         if not device:
@@ -34,6 +35,7 @@ class AppController:
             self.status = "FAILED"
 
     def disconnect(self) -> None:
+        """Disconnect and clear supported commands."""
         self.conn.disconnect()
         self.status = "DISCONNECTED"
         self.supported_commands = None

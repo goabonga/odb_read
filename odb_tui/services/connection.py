@@ -28,6 +28,7 @@ class OBDConnectionService:
         return self.connection is not None and self.connection.is_connected()
 
     def connect(self, port: str) -> bool:
+        """Connect to the OBD-II adapter and return True on success."""
         try:
             self.connection = obd.OBD(port, fast=False)
             return bool(self.connection.is_connected())
