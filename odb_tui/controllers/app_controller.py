@@ -1,5 +1,8 @@
 """Application controller orchestrating OBD services."""
 
+from __future__ import annotations
+
+from odb_tui.models.supported_commands import SupportedCommands
 from odb_tui.services.connection import OBDConnectionService
 from odb_tui.services.device import detect_obd_device
 
@@ -13,8 +16,10 @@ class AppController:
         self.port = "-"
         self.vid = "-"
         self.pid = "-"
+        self.supported_commands: SupportedCommands | None = None
 
     def connect(self) -> None:
+        """Detect device, connect, and discover supported commands."""
         self.status = "CONNECTING..."
         device, vid, pid = detect_obd_device()
         if not device:
@@ -25,9 +30,12 @@ class AppController:
         self.pid = pid or "-"
         if self.conn.connect(device):
             self.status = "CONNECTED"
+            self.supported_commands = self.conn.discover_supported_commands()
         else:
             self.status = "FAILED"
 
     def disconnect(self) -> None:
+        """Disconnect and clear supported commands."""
         self.conn.disconnect()
         self.status = "DISCONNECTED"
+        self.supported_commands = None
