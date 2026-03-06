@@ -205,6 +205,7 @@ def test_refresh_active_panel_default_engine(mock_ctrl_cls):
 
 @patch("odb_tui.app.AppController")
 def test_no_status_bar_static_widget(mock_ctrl_cls):
+    """Old #status-bar Static widget should no longer exist in the DOM."""
     mock_ctrl_cls.return_value = _mock_ctrl()
 
     async def run():
@@ -219,6 +220,7 @@ def test_no_status_bar_static_widget(mock_ctrl_cls):
 
 @patch("odb_tui.app.AppController")
 def test_app_has_no_status_bar_attribute_as_static(mock_ctrl_cls):
+    """App should not expose a status_bar attribute typed as Static."""
     mock_ctrl_cls.return_value = _mock_ctrl()
 
     async def run():
@@ -232,6 +234,7 @@ def test_app_has_no_status_bar_attribute_as_static(mock_ctrl_cls):
 
 @patch("odb_tui.app.AppController")
 def test_refresh_status_method_exists(mock_ctrl_cls):
+    """App should have a callable _refresh_status method."""
     mock_ctrl_cls.return_value = _mock_ctrl()
 
     async def run():
@@ -246,6 +249,7 @@ def test_refresh_status_method_exists(mock_ctrl_cls):
 
 @patch("odb_tui.app.AppController")
 def test_default_footer_shows_disconnected_info(mock_ctrl_cls):
+    """Footer should be present after refreshing status with default controller."""
     mock_ctrl_cls.return_value = _mock_ctrl()
 
     async def run():
@@ -262,12 +266,14 @@ def test_default_footer_shows_disconnected_info(mock_ctrl_cls):
 
 @patch("odb_tui.app.AppController")
 def test_css_has_no_status_bar_rule(mock_ctrl_cls):
+    """App CSS should not contain the removed #status-bar rule."""
     mock_ctrl_cls.return_value = _mock_ctrl()
     assert "#status-bar" not in OBDReaderApp.CSS
 
 
 @patch("odb_tui.app.AppController")
 def test_refresh_status_updates_connection_info(mock_ctrl_cls):
+    """Refreshing status with a connected controller should keep the footer present."""
     mock_ctrl = _mock_ctrl()
     mock_ctrl.status = "CONNECTED"
     mock_ctrl.port = "/dev/ttyUSB0"

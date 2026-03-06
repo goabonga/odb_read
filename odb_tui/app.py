@@ -17,6 +17,7 @@ DEFAULT_CONNECTION_INFO = "DISCONNECTED  |  -  |  -:-"
 
 
 class ConnectionFooter(Footer):
+    """Footer widget that displays OBD-II connection info on the right side."""
 
     DEFAULT_CSS = """
     ConnectionFooter {
@@ -32,10 +33,16 @@ class ConnectionFooter(Footer):
     """
 
     def compose(self) -> ComposeResult:
+        """Compose the footer with an additional connection info label."""
         yield from super().compose()
         yield Static(DEFAULT_CONNECTION_INFO, id="connection-info")
 
     def update_connection_info(self, text: str) -> None:
+        """Update the connection info label with the given text.
+
+        Args:
+            text: Formatted connection string to display.
+        """
         try:
             info = self.query_one("#connection-info", Static)
             info.update(text)
