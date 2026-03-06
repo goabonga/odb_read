@@ -61,6 +61,7 @@ class OBDReaderApp(App[None]):
         self._current_panel = "engine"
         self._state = VehicleState()
         self._refresh_dashboard()
+        self._poll_timer = self.set_interval(1.0, self._poll_sensors, pause=True)
 
     def _refresh_status(self) -> None:
         self.status_bar.update(f"{self.ctrl.status}  |  {self.ctrl.port}  |  {self.ctrl.vid}:{self.ctrl.pid}")
@@ -71,14 +72,22 @@ class OBDReaderApp(App[None]):
         dashboard = self.query_one("#dashboard", Static)
         dashboard.update(builder(self._state))
 
+    def _poll_sensors(self) -> None:
+        self.ctrl.update_state(self._state)
+        self._state.connection_status = self.ctrl.status
+        self._refresh_dashboard()
+
     async def action_connect(self) -> None:
         """Handle 'c' key: connect to the OBD adapter."""
         self.ctrl.connect()
         self._refresh_status()
         self._refresh_dashboard()
+        if self.ctrl.status == "CONNECTED":
+            self._poll_timer.resume()
 
     async def action_disconnect(self) -> None:
         """Handle 'd' key: disconnect from the OBD adapter."""
+        self._poll_timer.pause()
         self.ctrl.disconnect()
         self._state = VehicleState()
         self._refresh_status()
