@@ -22,7 +22,7 @@ odb-tui --version
 
 - Auto-detect OBD-II USB adapters (vLinker, VID 0403/PID 6015) and connect via python-obd
 - Discover all supported OBD commands (modes 01-09 + ELM) and display them grouped by mode with support checkboxes
-- Dashboard panels with conditional display — only shows data for commands supported by the vehicle:
+- Tabbed dashboard UI with 6 panels and keyboard navigation (Textual TabbedContent) — only shows data for commands supported by the vehicle:
   - **Engine** (1): RPM, load, temperatures, fuel, O2 sensors
   - **Turbo/Air** (2): intake pressure, boost, throttle, accelerator
   - **EGR** (3): commanded EGR, error interpretation
