@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 from odb_tui.models.supported_commands import SupportedCommands
+from odb_tui.models.vehicle import VehicleState
 from odb_tui.services.connection import OBDConnectionService
 from odb_tui.services.device import detect_obd_device
+from odb_tui.services.update import UpdateService
 
 
 class AppController:
@@ -12,6 +14,7 @@ class AppController:
 
     def __init__(self) -> None:
         self.conn = OBDConnectionService()
+        self.updater = UpdateService(self.conn)
         self.status = "DISCONNECTED"
         self.port = "-"
         self.vid = "-"
@@ -39,3 +42,7 @@ class AppController:
         self.conn.disconnect()
         self.status = "DISCONNECTED"
         self.supported_commands = None
+
+    def update_state(self, state: VehicleState) -> None:
+        """Poll all OBD sensors and update state."""
+        self.updater.update(state)

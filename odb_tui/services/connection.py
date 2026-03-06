@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import obd
 
 from odb_tui.models.supported_commands import CommandStatus, SupportedCommands
@@ -43,6 +45,18 @@ class OBDConnectionService:
             except Exception:
                 pass
         self.connection = None
+
+    def query(self, cmd_name: str) -> Any | None:
+        """Query a single OBD command by name and return its response, or None."""
+        if not self.is_connected or self.connection is None:
+            return None
+        cmd = getattr(obd.commands, cmd_name, None)
+        if cmd is None:
+            return None
+        response = self.connection.query(cmd)
+        if response.is_null():
+            return None
+        return response.value
 
     def discover_supported_commands(self) -> SupportedCommands:
         """Scan all OBD modes and return which commands are supported by the vehicle."""
