@@ -3,6 +3,7 @@ from odb_tui.views.panels.pids import build_pids_panel
 
 
 def _make_supported_commands() -> SupportedCommands:
+    """Create a sample SupportedCommands fixture for testing."""
     modes = {
         "Mode 01 — Live Data": [
             CommandStatus(name="RPM", pid="0x0C", description="Engine RPM", supported=True),
@@ -18,6 +19,7 @@ def test_build_pids_panel_not_connected():
 
 
 def test_build_pids_panel_no_title():
+    """Verify PIDs panel output does not start with a title line."""
     sc = _make_supported_commands()
     result = build_pids_panel(sc)
     first_line = result.split("\n")[0]
@@ -45,6 +47,7 @@ def test_build_pids_panel_checkbox_format():
 
 
 def test_build_pids_panel_mode_headers_present():
+    """Verify mode group headers appear in the PIDs panel output."""
     sc = _make_supported_commands()
     result = build_pids_panel(sc)
     assert "Mode 01 — Live Data" in result
