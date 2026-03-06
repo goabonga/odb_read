@@ -5,10 +5,23 @@ from odb_tui.views.panels.engine import build_engine_panel
 from odb_tui.views.panels.errors import build_errors_panel
 from odb_tui.views.panels.turbo import build_turbo_panel
 
+# --- Engine panel ---
 
-def test_engine_panel_empty_state():
+
+def test_engine_panel_no_title():
+    """Verify engine panel output does not start with a title line."""
     result = build_engine_panel(VehicleState())
-    assert "ENGINE" in result
+    first_line = result.split("\n")[0]
+    assert first_line != "ENGINE"
+
+
+def test_engine_panel_no_title_separator():
+    """Verify engine panel does not begin with a separator line."""
+    result = build_engine_panel(VehicleState())
+    lines = result.split("\n")
+    assert lines[0] != "─" * 60
+    if len(lines) > 1:
+        assert lines[1] != "─" * 60
 
 
 def test_engine_panel_with_data():
@@ -19,9 +32,44 @@ def test_engine_panel_with_data():
     assert "LEVEL" in result
 
 
-def test_turbo_panel_empty_state():
+def test_engine_panel_temperatures_subsection():
+    """Verify temperatures subsection appears when temperature data is present."""
+    state = VehicleState(coolant_temp=90.0)
+    result = build_engine_panel(state)
+    assert "TEMPERATURES" in result
+
+
+def test_engine_panel_fuel_subsection():
+    """Verify fuel subsection appears when fuel data is present."""
+    state = VehicleState(fuel_level=75.0)
+    result = build_engine_panel(state)
+    assert "FUEL" in result
+
+
+def test_engine_panel_o2_subsection():
+    """Verify O2 sensors subsection appears when O2 data is present."""
+    state = VehicleState(o2_s1_wr=1.0)
+    result = build_engine_panel(state)
+    assert "O2 SENSORS" in result
+
+
+# --- Turbo panel ---
+
+
+def test_turbo_panel_no_title():
+    """Verify turbo panel output does not start with a title line."""
     result = build_turbo_panel(VehicleState())
-    assert "TURBO" in result
+    first_line = result.split("\n")[0]
+    assert first_line != "TURBO / AIR"
+
+
+def test_turbo_panel_no_title_separator():
+    """Verify turbo panel does not begin with a separator line."""
+    result = build_turbo_panel(VehicleState())
+    lines = result.split("\n")
+    assert lines[0] != "─" * 60
+    if len(lines) > 1:
+        assert lines[1] != "─" * 60
 
 
 def test_turbo_panel_with_boost():
@@ -31,10 +79,37 @@ def test_turbo_panel_with_boost():
     assert "NET BOOST" in result
 
 
-def test_egr_panel_empty_state():
+def test_turbo_panel_throttle_subsection():
+    """Verify throttle subsection appears when throttle data is present."""
+    state = VehicleState(throttle=50.0)
+    result = build_turbo_panel(state)
+    assert "THROTTLE" in result
+
+
+def test_turbo_panel_accelerator_subsection():
+    """Verify accelerator subsection appears when accelerator data is present."""
+    state = VehicleState(accel_d=30.0)
+    result = build_turbo_panel(state)
+    assert "ACCELERATOR" in result
+
+
+# --- EGR panel ---
+
+
+def test_egr_panel_no_title():
+    """Verify EGR panel output does not start with a title line."""
     result = build_egr_panel(VehicleState())
-    assert "EGR" in result
-    assert "No EGR data" in result
+    first_line = result.split("\n")[0]
+    assert first_line != "EGR"
+
+
+def test_egr_panel_no_title_separator():
+    """Verify EGR panel does not begin with a separator line."""
+    result = build_egr_panel(VehicleState())
+    lines = result.split("\n")
+    assert lines[0] != "─" * 60
+    if len(lines) > 1:
+        assert lines[1] != "─" * 60
 
 
 def test_egr_panel_with_data():
@@ -44,9 +119,28 @@ def test_egr_panel_with_data():
     assert "3.5% below" in result
 
 
-def test_diag_panel_empty_state():
+# --- Diag panel ---
+
+
+def test_diag_panel_no_title():
+    """Verify diagnostics panel output does not start with a title line."""
     result = build_diag_panel(VehicleState())
-    assert "DIAGNOSTICS" in result
+    first_line = result.split("\n")[0]
+    assert first_line != "DIAGNOSTICS"
+
+
+def test_diag_panel_no_title_separator():
+    """Verify diagnostics panel does not begin with a separator line."""
+    result = build_diag_panel(VehicleState())
+    lines = result.split("\n")
+    assert lines[0] != "─" * 60
+    if len(lines) > 1:
+        assert lines[1] != "─" * 60
+
+
+def test_diag_panel_mil_present():
+    """Verify MIL status is always present in diagnostics panel output."""
+    result = build_diag_panel(VehicleState())
     assert "MIL" in result
 
 
@@ -55,6 +149,55 @@ def test_diag_panel_with_dtcs():
     result = build_diag_panel(state)
     assert "P0420" in result
     assert "Catalyst" in result
+
+
+def test_diag_panel_counters_subsection():
+    """Verify counters subsection appears when counter data is present."""
+    state = VehicleState(dist_mil=100.0)
+    result = build_diag_panel(state)
+    assert "COUNTERS" in result
+
+
+def test_diag_panel_calibration_subsection():
+    """Verify calibration subsection appears when calibration data is present."""
+    state = VehicleState(cal_id="CAL123")
+    result = build_diag_panel(state)
+    assert "CALIBRATION" in result
+
+
+def test_diag_panel_stored_dtcs_subsection():
+    """Verify stored DTCs subsection appears when stored DTCs are present."""
+    state = VehicleState(dtc_list=[("P0420", "Catalyst efficiency")])
+    result = build_diag_panel(state)
+    assert "STORED DTCs" in result
+
+
+def test_diag_panel_current_dtcs_subsection():
+    """Verify current DTCs subsection appears when current DTCs are present."""
+    state = VehicleState(current_dtc_list=[("P0300", "Random misfire")])
+    result = build_diag_panel(state)
+    assert "CURRENT DTCs" in result
+
+
+# --- Errors panel ---
+
+
+def test_errors_panel_no_title():
+    """Verify errors panel output does not start with a title line."""
+    state = VehicleState(connection_status="CONNECTED")
+    result = build_errors_panel(state)
+    first_line = result.split("\n")[0]
+    assert first_line != "ERRORS"
+
+
+def test_errors_panel_no_title_separator():
+    """Verify errors panel does not begin with a separator line."""
+    state = VehicleState(connection_status="CONNECTED")
+    result = build_errors_panel(state)
+    lines = result.split("\n")
+    assert lines[0] != "─" * 60
+    if len(lines) > 1:
+        assert lines[1] != "─" * 60
 
 
 def test_errors_panel_not_connected():
