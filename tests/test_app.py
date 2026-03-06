@@ -85,13 +85,18 @@ def _run_async(coro):
 @patch("odb_tui.app.AppController")
 def test_action_switch_tab_sets_active(mock_ctrl_cls):
     """Calling action_switch_tab should set the TabbedContent active tab."""
-    mock_ctrl_cls.return_value = _mock_ctrl()
+    mock_ctrl = _mock_ctrl()
+    mock_ctrl_cls.return_value = mock_ctrl
 
     async def run():
         app = OBDReaderApp()
         async with app.run_test() as pilot:
             from textual.widgets import TabbedContent
 
+            await pilot.pause()
+            mock_ctrl.status = "CONNECTED"
+            await app.action_connect()
+            await pilot.pause()
             await app.action_switch_tab("turbo")
             await pilot.pause()
             tabs = app.query_one("#tabs", TabbedContent)
@@ -103,13 +108,18 @@ def test_action_switch_tab_sets_active(mock_ctrl_cls):
 @patch("odb_tui.app.AppController")
 def test_action_switch_tab_to_each_panel(mock_ctrl_cls):
     """Switching to every tab in TAB_ORDER should activate each one."""
-    mock_ctrl_cls.return_value = _mock_ctrl()
+    mock_ctrl = _mock_ctrl()
+    mock_ctrl_cls.return_value = mock_ctrl
 
     async def run():
         app = OBDReaderApp()
         async with app.run_test() as pilot:
             from textual.widgets import TabbedContent
 
+            await pilot.pause()
+            mock_ctrl.status = "CONNECTED"
+            await app.action_connect()
+            await pilot.pause()
             for tab_id, _ in TAB_ORDER:
                 await app.action_switch_tab(tab_id)
                 await pilot.pause()
@@ -146,7 +156,8 @@ def test_refresh_active_panel_calls_builder_for_engine(mock_ctrl_cls):
 @patch("odb_tui.app.AppController")
 def test_refresh_active_panel_calls_builder_for_turbo(mock_ctrl_cls):
     """Refreshing the active panel on turbo tab should call the turbo builder."""
-    mock_ctrl_cls.return_value = _mock_ctrl()
+    mock_ctrl = _mock_ctrl()
+    mock_ctrl_cls.return_value = mock_ctrl
     mock_builder = MagicMock(return_value="TURBO MOCK")
 
     async def run():
@@ -157,6 +168,10 @@ def test_refresh_active_panel_calls_builder_for_turbo(mock_ctrl_cls):
         try:
             app = OBDReaderApp()
             async with app.run_test() as pilot:
+                await pilot.pause()
+                mock_ctrl.status = "CONNECTED"
+                await app.action_connect()
+                await pilot.pause()
                 await app.action_switch_tab("turbo")
                 await pilot.pause()
                 mock_builder.reset_mock()
@@ -177,6 +192,10 @@ def test_refresh_active_panel_calls_pids_builder(mock_ctrl_cls):
     async def run():
         app = OBDReaderApp()
         async with app.run_test() as pilot:
+            await pilot.pause()
+            mock_ctrl.status = "CONNECTED"
+            await app.action_connect()
+            await pilot.pause()
             await app.action_switch_tab("pids")
             await pilot.pause()
             with patch("odb_tui.app.build_pids_panel", return_value="PIDS MOCK") as mock_pids:
@@ -291,3 +310,98 @@ def test_refresh_status_updates_connection_info(mock_ctrl_cls):
             assert footer is not None
 
     _run_async(run())
+
+
+@patch("odb_tui.app.AppController")
+def test_tabs_disabled_on_startup(mock_ctrl_cls):
+    """All tabs should be disabled on startup when device is not connected."""
+    mock_ctrl_cls.return_value = _mock_ctrl()
+
+    async def run():
+        app = OBDReaderApp()
+        async with app.run_test() as pilot:
+            from textual.widgets import TabbedContent
+
+            await pilot.pause()
+            tabs_widget = app.query_one("#tabs", TabbedContent)
+            for tab_id, _ in TAB_ORDER:
+                tab = tabs_widget.get_tab(tab_id)
+                assert tab.disabled, f"Tab '{tab_id}' should be disabled on startup"
+
+    _run_async(run())
+
+
+@patch("odb_tui.app.AppController")
+def test_tabs_enabled_after_connect(mock_ctrl_cls):
+    """All tabs should be enabled after a successful connection."""
+    mock_ctrl = _mock_ctrl()
+    mock_ctrl_cls.return_value = mock_ctrl
+
+    async def run():
+        app = OBDReaderApp()
+        async with app.run_test() as pilot:
+            from textual.widgets import TabbedContent
+
+            await pilot.pause()
+            mock_ctrl.status = "CONNECTED"
+            await app.action_connect()
+            await pilot.pause()
+            tabs_widget = app.query_one("#tabs", TabbedContent)
+            for tab_id, _ in TAB_ORDER:
+                tab = tabs_widget.get_tab(tab_id)
+                assert not tab.disabled, f"Tab '{tab_id}' should be enabled after connect"
+
+    _run_async(run())
+
+
+@patch("odb_tui.app.AppController")
+def test_tabs_disabled_after_disconnect(mock_ctrl_cls):
+    """All tabs should be disabled again after disconnecting."""
+    mock_ctrl = _mock_ctrl()
+    mock_ctrl_cls.return_value = mock_ctrl
+
+    async def run():
+        app = OBDReaderApp()
+        async with app.run_test() as pilot:
+            from textual.widgets import TabbedContent
+
+            await pilot.pause()
+            mock_ctrl.status = "CONNECTED"
+            await app.action_connect()
+            await pilot.pause()
+            mock_ctrl.status = "DISCONNECTED"
+            await app.action_disconnect()
+            await pilot.pause()
+            tabs_widget = app.query_one("#tabs", TabbedContent)
+            for tab_id, _ in TAB_ORDER:
+                tab = tabs_widget.get_tab(tab_id)
+                assert tab.disabled, f"Tab '{tab_id}' should be disabled after disconnect"
+
+    _run_async(run())
+
+
+@patch("odb_tui.app.AppController")
+def test_action_switch_tab_ignored_when_disconnected(mock_ctrl_cls):
+    """Switching tabs via action_switch_tab should be ignored when disconnected."""
+    mock_ctrl_cls.return_value = _mock_ctrl()
+
+    async def run():
+        app = OBDReaderApp()
+        async with app.run_test() as pilot:
+            from textual.widgets import TabbedContent
+
+            await pilot.pause()
+            tabs_widget = app.query_one("#tabs", TabbedContent)
+            initial_active = tabs_widget.active
+            await app.action_switch_tab("turbo")
+            await pilot.pause()
+            assert tabs_widget.active == initial_active, "Tab should not switch when disconnected"
+
+    _run_async(run())
+
+
+@patch("odb_tui.app.AppController")
+def test_disabled_tabs_have_dimmed_style(mock_ctrl_cls):
+    """Disabled tabs should have a distinct dimmed visual style via CSS."""
+    mock_ctrl_cls.return_value = _mock_ctrl()
+    assert "Tab.-disabled" in OBDReaderApp.CSS or "Tab:disabled" in OBDReaderApp.CSS

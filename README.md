@@ -30,6 +30,7 @@ odb-tui --version
   - **Errors** (5): active diagnostic trouble codes
   - **Supported PIDs** (p): full OBD command list with availability checkboxes
 - Footer displays live connection info: status, port, and device VID:PID
+- Tabs are disabled when no OBD device is connected; they enable on connect and disable again on disconnect
 - Keybindings: `c` connect, `d` disconnect, `1`-`5` switch panels, `p` PIDs, `q` quit
 
 ## Development
