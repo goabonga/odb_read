@@ -49,6 +49,7 @@ class OBDConnectionService:
         if not self.is_connected or self.connection is None:
             return SupportedCommands()
 
+        supported_names: set[str] = {str(c.name) for c in self.connection.supported_commands}
         modes: dict[str, list[CommandStatus]] = {}
 
         for mode_num in (1, 2, 3, 4, 6, 7, 9):
@@ -62,7 +63,7 @@ class OBDConnectionService:
                 if cmd is None:
                     continue
                 pid_hex = f"0x{cmd.pid:02X}" if hasattr(cmd, "pid") and cmd.pid is not None else "-"
-                supported = bool(self.connection.supports(cmd))
+                supported = str(cmd.name) in supported_names
                 cmds.append(CommandStatus(
                     name=str(cmd.name),
                     pid=pid_hex,
@@ -77,7 +78,7 @@ class OBDConnectionService:
         for elm_name in ("ELM_VERSION", "ELM_VOLTAGE"):
             cmd = getattr(obd.commands, elm_name, None)
             if cmd is not None:
-                supported = bool(self.connection.supports(cmd))
+                supported = str(cmd.name) in supported_names
                 elm_cmds.append(CommandStatus(
                     name=str(cmd.name),
                     pid="-",

@@ -54,7 +54,7 @@ def test_discover_supported_commands(mocker):
     mock_cmd2.desc = "Vehicle Speed"
     mock_conn = MagicMock()
     mock_conn.is_connected.return_value = True
-    mock_conn.supports.side_effect = lambda cmd: cmd.name == "RPM"
+    mock_conn.supported_commands = {mock_cmd1}
     mocker.patch("odb_tui.services.connection.obd.OBD", return_value=mock_conn)
     mocker.patch("odb_tui.services.connection.obd.commands.__getitem__", return_value=[mock_cmd1, mock_cmd2])
     svc = OBDConnectionService()
