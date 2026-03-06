@@ -57,6 +57,7 @@ class OBDReaderApp(App[None]):
     ]
 
     def compose(self) -> ComposeResult:
+        """Build the widget tree with tabbed dashboard panels."""
         yield Header(show_clock=True)
         with TabbedContent(initial="engine", id="tabs"):
             for tab_id, title in TAB_ORDER:
@@ -67,15 +68,18 @@ class OBDReaderApp(App[None]):
         yield Footer()
 
     async def on_mount(self) -> None:
+        """Initialize the controller, state, and polling timer."""
         self.ctrl = AppController()
         self._state = VehicleState()
         self._refresh_active_panel()
         self._poll_timer = self.set_interval(1.0, self._poll_sensors, pause=True)
 
     def _refresh_status(self) -> None:
+        """Update the status bar with connection info."""
         self.status_bar.update(f"{self.ctrl.status}  |  {self.ctrl.port}  |  {self.ctrl.vid}:{self.ctrl.pid}")
 
     def _refresh_active_panel(self) -> None:
+        """Re-render the currently active tab panel."""
         self._state.connection_status = self.ctrl.status
         tabs = self.query_one("#tabs", TabbedContent)
         active = tabs.active
@@ -88,14 +92,17 @@ class OBDReaderApp(App[None]):
         panel.update(content)
 
     def on_tabbed_content_tab_activated(self, event: TabbedContent.TabActivated) -> None:
+        """Refresh panel content when the user switches tabs."""
         self._refresh_active_panel()
 
     def _poll_sensors(self) -> None:
+        """Read sensors from the adapter and refresh the active panel."""
         self.ctrl.update_state(self._state)
         self._state.connection_status = self.ctrl.status
         self._refresh_active_panel()
 
     async def action_connect(self) -> None:
+        """Connect to the OBD-II adapter and start polling on success."""
         self.ctrl.connect()
         self._refresh_status()
         self._refresh_active_panel()
@@ -103,6 +110,7 @@ class OBDReaderApp(App[None]):
             self._poll_timer.resume()
 
     async def action_disconnect(self) -> None:
+        """Disconnect from the adapter, stop polling, and reset state."""
         self._poll_timer.pause()
         self.ctrl.disconnect()
         self._state = VehicleState()
@@ -110,5 +118,6 @@ class OBDReaderApp(App[None]):
         self._refresh_active_panel()
 
     async def action_switch_tab(self, name: str) -> None:
+        """Switch to the tab identified by name."""
         tabs = self.query_one("#tabs", TabbedContent)
         tabs.active = name

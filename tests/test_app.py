@@ -1,3 +1,5 @@
+"""Tests for the TabbedContent-based OBDReaderApp."""
+
 import asyncio
 from unittest.mock import MagicMock, patch
 
@@ -10,10 +12,12 @@ from odb_tui.views.panels.turbo import build_turbo_panel
 
 
 def test_tab_order_has_six_entries():
+    """TAB_ORDER should contain exactly six tab definitions."""
     assert len(TAB_ORDER) == 6
 
 
 def test_tab_order_ids_and_titles():
+    """TAB_ORDER ids and titles should match the expected layout."""
     expected = [
         ("engine", "Engine"),
         ("turbo", "Turbo"),
@@ -26,6 +30,7 @@ def test_tab_order_ids_and_titles():
 
 
 def test_panel_builders_maps_five_panels():
+    """PANEL_BUILDERS should map five panel ids to their builder functions."""
     assert len(PANEL_BUILDERS) == 5
     assert PANEL_BUILDERS["engine"] is build_engine_panel
     assert PANEL_BUILDERS["turbo"] is build_turbo_panel
@@ -35,10 +40,12 @@ def test_panel_builders_maps_five_panels():
 
 
 def test_panel_builders_excludes_pids():
+    """PIDs panel uses a dedicated builder and should not be in PANEL_BUILDERS."""
     assert "pids" not in PANEL_BUILDERS
 
 
 def test_bindings_include_tab_keys():
+    """All numeric and 'p' key bindings for tab switching should be present."""
     keys = {b.key for b in OBDReaderApp.BINDINGS}
     assert "1" in keys
     assert "2" in keys
@@ -49,6 +56,7 @@ def test_bindings_include_tab_keys():
 
 
 def test_bindings_tab_actions():
+    """Each tab key binding should map to the correct switch_tab action."""
     action_map = {b.key: b.action for b in OBDReaderApp.BINDINGS}
     assert action_map["1"] == "switch_tab('engine')"
     assert action_map["2"] == "switch_tab('turbo')"
@@ -74,6 +82,7 @@ def _run_async(coro):
 
 @patch("odb_tui.app.AppController")
 def test_action_switch_tab_sets_active(mock_ctrl_cls):
+    """Calling action_switch_tab should set the TabbedContent active tab."""
     mock_ctrl_cls.return_value = _mock_ctrl()
 
     async def run():
@@ -91,6 +100,7 @@ def test_action_switch_tab_sets_active(mock_ctrl_cls):
 
 @patch("odb_tui.app.AppController")
 def test_action_switch_tab_to_each_panel(mock_ctrl_cls):
+    """Switching to every tab in TAB_ORDER should activate each one."""
     mock_ctrl_cls.return_value = _mock_ctrl()
 
     async def run():
@@ -109,6 +119,7 @@ def test_action_switch_tab_to_each_panel(mock_ctrl_cls):
 
 @patch("odb_tui.app.AppController")
 def test_refresh_active_panel_calls_builder_for_engine(mock_ctrl_cls):
+    """Refreshing the active panel on engine tab should call the engine builder."""
     mock_ctrl_cls.return_value = _mock_ctrl()
     mock_builder = MagicMock(return_value="ENGINE MOCK")
 
@@ -132,6 +143,7 @@ def test_refresh_active_panel_calls_builder_for_engine(mock_ctrl_cls):
 
 @patch("odb_tui.app.AppController")
 def test_refresh_active_panel_calls_builder_for_turbo(mock_ctrl_cls):
+    """Refreshing the active panel on turbo tab should call the turbo builder."""
     mock_ctrl_cls.return_value = _mock_ctrl()
     mock_builder = MagicMock(return_value="TURBO MOCK")
 
@@ -156,6 +168,7 @@ def test_refresh_active_panel_calls_builder_for_turbo(mock_ctrl_cls):
 
 @patch("odb_tui.app.AppController")
 def test_refresh_active_panel_calls_pids_builder(mock_ctrl_cls):
+    """Refreshing on pids tab should call build_pids_panel with supported commands."""
     mock_ctrl = _mock_ctrl()
     mock_ctrl_cls.return_value = mock_ctrl
 
@@ -173,6 +186,7 @@ def test_refresh_active_panel_calls_pids_builder(mock_ctrl_cls):
 
 @patch("odb_tui.app.AppController")
 def test_refresh_active_panel_default_engine(mock_ctrl_cls):
+    """The default active tab on mount should be engine."""
     mock_ctrl_cls.return_value = _mock_ctrl()
 
     async def run():
